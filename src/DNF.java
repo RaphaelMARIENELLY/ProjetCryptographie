@@ -1,51 +1,19 @@
+package src;
+
 import java.awt.*;
 import java.math.BigInteger;
 import java.util.*;
 
-public class Paillier_R {
+public class DNF {
     private Random rnd;
-    private BigInteger p;
-    private BigInteger q;
-    private BigInteger n;
-    private BigInteger phi;
-    private BigInteger r;
 
-    public Paillier_R(){
-        rnd = new Random();
-    }
+    public DNF () { rnd = new Random(); }
 
-    public ArrayList<BigInteger> keyGen(BigInteger lambda) {
-        ArrayList<BigInteger> pksk = new ArrayList<>();
-        p = new BigInteger(512, 1, rnd);
-        q = new BigInteger(512, 1, rnd);
-        phi = p.subtract(BigInteger.ONE).multiply(q.subtract(BigInteger.ONE));
-        n = p.multiply(q);
-
-        pksk.add(n);
-        pksk.add(n.modInverse(phi));
-        return pksk;
-    }
-
-    public BigInteger encrypt(BigInteger pk, BigInteger m){
-        r =  new BigInteger(pk.bitLength()-2, rnd);
-        BigInteger a = (m.multiply(pk).add(BigInteger.ONE)).mod(pk.pow(2));
-        BigInteger b = r.modPow(pk, pk.pow(2));
-
-        return  (a.multiply(b)).mod(pk.pow(2)) ;
-    }
-
-    public BigInteger decrypt(BigInteger pk, BigInteger sk, BigInteger c){
-        r = c.mod(pk).modPow(sk, pk.pow(2));
-
-        BigInteger m = c.multiply(r.modPow(pk.negate(),pk.pow(2) )).subtract(BigInteger.ONE).mod(pk.pow(2));
-        return m.divide(pk);
-    }
-
-    public static void main (String[] args) {
-        Paillier_R paillier = new Paillier_R();
+    public void dnf(){
+        Paillier paillier = new Paillier();
 
         // générartion de la clé secrète
-        ArrayList<BigInteger> pksk = paillier.keyGen(BigInteger.ZERO);
+        ArrayList<BigInteger> pksk = paillier.keyGen();
         BigInteger pk = pksk.get(0);
         BigInteger sk = pksk.get(1);
         int l = pk.bitLength();
@@ -95,7 +63,7 @@ public class Paillier_R {
         ArrayList<BigInteger> result = new ArrayList<>();
         for(int i=0;i<indiceDNF.size();i++) {
             BigInteger resultOfMultiplication = one;
-            BigInteger randGenere = new BigInteger(l-2, paillier.rnd);
+            BigInteger randGenere = new BigInteger(l-2, rnd);
 
             for(int j=0;j<3;j++) {
                 if(indiceDNF.get(i).get(j).y == 0) {
@@ -123,7 +91,7 @@ public class Paillier_R {
 
         BigInteger m;
         for(int i=0;i<randomToAdd;i++) {
-            m = new BigInteger(l-2, paillier.rnd);
+            m = new BigInteger(l-2, rnd);
             result.add(m.add(BigInteger.ONE));
         }
 
@@ -139,8 +107,11 @@ public class Paillier_R {
                 break;
             }
         }
-
         System.out.println("La réponse est : " + rep);
     }
 
+    public static void main(String[] args) {
+        DNF dnf = new DNF();
+        dnf.dnf();
+    }
 }

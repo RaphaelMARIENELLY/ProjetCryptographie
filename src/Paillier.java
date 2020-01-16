@@ -1,4 +1,4 @@
-package Partie1.src;
+package src;
 
 import java.math.BigInteger;
 import java.util.ArrayList;
