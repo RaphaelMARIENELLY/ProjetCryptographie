@@ -7,27 +7,17 @@ import java.util.Random;
 
 public class MultiProof {
     private Random rnd;
-
+    private Paillier paillier;
     public MultiProof(){
         rnd = new Random();
+        paillier = new Paillier();
     }
 
-    public BigInteger multiproof () {
-        // Génération des clefs. A pour Alice, B pour Bob.
-        Paillier paillier = new Paillier();
-        ArrayList<BigInteger> pksk = paillier.keyGen();
-        BigInteger pkB = pksk.get(0);
-        BigInteger skB = pksk.get(1);
-        BigInteger pk2B = pkB.multiply(pkB);
+    public BigInteger multiproof (BigInteger XA, BigInteger YA, BigInteger pkB, BigInteger skB) {
 
-        // Génération de x et de y puis encryption par Alice
+        BigInteger pk2B = pkB.multiply(pkB);
         int l = pkB.bitLength();
-        BigInteger xA = new BigInteger(l+100, rnd);
-        BigInteger yA = new BigInteger(l+100, rnd);
-        xA = xA.mod(pkB);
-        yA = yA.mod(pkB);
-        BigInteger XA = paillier.encrypt(pkB, xA);
-        BigInteger YA = paillier.encrypt(pkB, yA);
+
 
         // Génération et encryption des masques s et t par Alice
         BigInteger sA = new BigInteger(l+100, rnd);
@@ -108,6 +98,32 @@ public class MultiProof {
             }
         }
 
+        if (check){
+            return XYA;
+        }
+        return BigInteger.ZERO;
+    }
+
+    public static void main(String[] args) {
+        // Génération des clefs. A pour Alice, B pour Bob.
+
+        Paillier paillier = new Paillier();
+        Random rnd = new Random();
+        ArrayList<BigInteger> pksk = paillier.keyGen();
+        BigInteger pkB = pksk.get(0);
+        BigInteger skB = pksk.get(1);
+        MultiProof mp = new MultiProof();
+
+        // Génération de x et de y puis encryption par Alice
+        int l = pkB.bitLength();
+        BigInteger xA = new BigInteger(l+100, rnd);
+        BigInteger yA = new BigInteger(l+100, rnd);
+
+        xA = xA.mod(pkB);
+        yA = yA.mod(pkB);
+        BigInteger XA = paillier.encrypt(pkB, xA);
+        BigInteger YA = paillier.encrypt(pkB, yA);
+        BigInteger XYA = mp.multiproof(XA, YA, pkB, skB);
         // test du produit
         BigInteger xy = xA.multiply(yA).mod(pkB);
         BigInteger decryptXYA = paillier.decrypt(pkB, skB, XYA).mod(pkB);
@@ -116,15 +132,5 @@ public class MultiProof {
         } else {
             System.out.println("Produit non validé");
         }
-
-        if (check){
-            return XYA;
-        }
-        return BigInteger.ZERO;
-    }
-
-    public static void main(String[] args) {
-        MultiProof mp = new MultiProof();
-        mp.multiproof();
     }
 }
